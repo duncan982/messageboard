@@ -19,6 +19,14 @@ app.use(cors({ origin: "*" })); //For FCC testing purposes only
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use(function (req, res, next) {
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self' https://wuwcrv-3000.preview.csb.app/; script-src 'self' https://wuwcrv-3000.preview.csb.app/; style 'self' https://wuwcrv-3000.preview.csb.app/; connect-src 'self' https://wuwcrv-3000.preview.csb.app/"
+  );
+  next();
+});
+
 mongoose
   .connect(process.env.CONNECTIONSTRING, {
     useNewURLParser: true,
