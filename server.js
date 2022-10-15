@@ -34,6 +34,10 @@ mongoose
   })
   .then(console.log("MongoDB is now connected."));
 
+mongoose.connection.on("connected", () => console.log("mongoDb connected!"));
+mongoose.connection.on("disconnected", () =>
+  console.log("mongoDb disconnected!")
+);
 //Sample front-end
 app.route("/b/:board/").get(function (req, res) {
   res.sendFile(process.cwd() + "/views/board.html");
