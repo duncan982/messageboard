@@ -1,21 +1,26 @@
 "use strict";
 
 const { default: mongoose } = require("mongoose");
+// const moments = require("moments");
 
 // const mongoose = require("mongoose");
 
 const messageBoard = new mongoose.Schema({
   board: String,
   boardText: String,
+  dateAndTime: Date,
   passwordToDelete: String,
+  repliesToBoardText: Array,
 });
 
 const MessageBoard = new mongoose.model("MessageBoard", messageBoard);
 
 const repliesToThreadText = new mongoose.Schema({
-  threadId: String,
-  threadText: String,
-  repliesToThreadText: String,
+  boardId: String,
+  boardText: String,
+  boardDateAndTime: Date,
+  replyToBoardText: String,
+  dateAndTime: Date,
   passwordToDelete: String,
 });
 
@@ -25,76 +30,152 @@ const RepliesToThreadText = new mongoose.model(
 );
 
 module.exports = function (app) {
-  app.route("/api/threads/:board").post(function (req, res) {
-    // console.log("req.body", req.body);
-    const { board, boardText, passwordToDelete } = req.body;
-    // console.log(board, boardText, passwordToDelete);
+  app
+    .route("/api/threads/:board")
+    .post(function (req, res) {
+      // console.log("req.body", req.body);
+      const { board, boardText, passwordToDelete } = req.body;
+      // console.log(board, boardText, passwordToDelete);
 
-    async function createMessageBoard(board, boardText, passwordToDelete) {
-      // const existingMessageBoard = await MessageBoard.findOne({
-      //   board: board,
-      // });
-      // // console.log("existingMessageBoard. 1. :", existingMessageBoard);
-      // if (existingMessageBoard) {
-      //   // console.log("existingMessageBoard. 2. :", existingMessageBoard);
-      //   return {
-      //     board: existingMessageBoard.board,
-      //     boardText: existingMessageBoard.boardText,
-      //     passwordToDelete: existingMessageBoard.passwordToDelete,
-      //   };
-      // } else {
-      const newMessageBoard = await MessageBoard.create({
-        board: board,
-        boardText: boardText,
-        passwordToDelete: passwordToDelete,
+      async function createMessageBoard(board, boardText, passwordToDelete) {
+        let date = new Date();
+        // console.log("time and date thread was created", date);
+        const newMessageBoard = await MessageBoard.create({
+          board: board,
+          boardText: boardText,
+          dateAndTime: date,
+          passwordToDelete: passwordToDelete,
+          repliesToBoardText: [],
+        });
+
+        await newMessageBoard.save();
+        // console.log("newMessageBoard", newMessageBoard);
+
+        const messages = await MessageBoard.find({});
+
+        return messages;
+      }
+
+      let message = createMessageBoard(board, boardText, passwordToDelete);
+      message.then((data) => {
+        // console.log("data", data);
+        res.send(data);
       });
+    })
+    // .post(function (req, res) {
+    //   // console.log("req.body", req.body);
+    //   const { board, boardText, passwordToDelete } = req.body;
+    //   // console.log(board, boardText, passwordToDelete);
 
-      await newMessageBoard.save();
-      // console.log("newMessageBoard", newMessageBoard);
+    //   async function createMessageBoard(board, boardText, passwordToDelete) {
+    //     let date = new Date();
+    //     // console.log("time and date thread was created", date);
+    //     const newMessageBoard = await MessageBoard.create({
+    //       board: board,
+    //       boardText: boardText,
+    //       dateAndTime: date,
+    //       passwordToDelete: passwordToDelete,
+    //     });
 
-      const messages = await MessageBoard.find({});
+    //     await newMessageBoard.save();
+    //     // console.log("newMessageBoard", newMessageBoard);
 
-      return messages;
-      // return {
-      //   board: newMessageBoard.board,
-      //   boardText: newMessageBoard.boardText,
-      //   passwordToDelete: newMessageBoard.passwordToDelete,
-      // };
-      // }
-    }
+    //     const messages = await MessageBoard.find({});
 
-    let message = createMessageBoard(board, boardText, passwordToDelete);
-    message.then((data) => {
-      console.log("data", data);
-      res.send(data);
-      // res.json({
-      //   board: data.board,
-      //   boardText: data.boardText,
-      //   passwordToDelete: data.passwordToDelete,
+    //     return messages;
+    //   }
+
+    //   let message = createMessageBoard(board, boardText, passwordToDelete);
+    //   message.then((data) => {
+    //     // console.log("data", data);
+    //     res.send(data);
+    //   });
+    // });
+    .get(function (req, res) {
+      /** aroute to sort the 10 most recent threads with 3 replies each */
+      const { recentThreads, replies } = req.body;
+
+      /** push the replies to board array of replies*/
+      // iterate replies
+      RepliesToThreadText.find({}).then((replies) => {
+        replies.forEach((reply) => {
+          // find matches by id
+          MessageBoard.findById({ _id: reply.boardId }).then((board) => {
+            console.log("board before", board);
+
+            // update list of reply with the current reply
+            board.repliesToBoardText.push(reply.replyToBoardText);
+            console.log("board after", board);
+          });
+        });
+      });
+      //     console.log("board before", board);
+      // // }
       // });
+
+      // use mongoose.findOneAndUpdate() based on the above id
+
+      // // find treads, sort by date in a descending manner
+      // let sortedRepliesToThreadTextByDate = RepliesToThreadText.find({}).sort({
+      //   boardDateAndTime: "descending",
+      // });
+
+      // sortedRepliesToThreadTextByDate.then((data) => {
+      //   // console.log("all threads", data);
+
+      //   // select those with atleast 3 or more replies
+      //   // select the top 10 and return them
+      //   // console.log("top 10 threads", data.slice(0, 9).length());
+      // });
+      // select the top 10 and return them
+      // search in the replies for all thread and replies collections,
+      // sort based on time/date
+      // select those with atleast 3 or more replies
+      // select the top 10 and return them
+
+      //   // a function to find all threads, sort based on time/date and with atleast 3 or more replies then select the top 10 and return them
+      //   async function searchForAllThreads(recentThreads, replies) {
+      //     let allThreads = await MessageBoard.find({});
+
+      //     let allThreadsSortedByTimeAndReplies = [];
+      //     allThreads.then((data) => {
+      //       console.log("all threads", data);
+
+      //       // sort based on time/date
+      //       // select those with atleast 3 or more replies
+      //     });
+      //     // select the top 10 and return them
+      //     let allThreadsMatchingSelectionCriteria = [];
+      //     return allThreadsMatchingSelectionCriteria;
+      //   }
+
+      //   // search in the collection of replies for all replies matching thread id
+      //   let allmatchingThreads = searchForAllThreads(recentThreads, replies);
+      //   allmatchingThreads.then((data) => {
+      //     console.log("allmatchingThreads", data);
+      //     res.send(data);
+      //   });
     });
-  });
-  // .get(function (req, res) {
-  //   console.log(req.body);
-  // });
 
   app.route("/api/replies/:board").post(function (req, res) {
-    const { threadId, threadText, repliesToThreadText, passwordToDelete } =
-      req.body;
+    // a route to create replies to thread
 
-    console.log(threadId, threadText, repliesToThreadText, passwordToDelete);
-    // a function to asynchrnously create and save new reply
+    // a function to asynchronously create and save new reply
     async function createAndSaveNewReply(
-      threadId,
-      threadText,
-      repliesToThreadText,
+      boardId,
+      boardText,
+      boardDateAndTime,
+      replyToBoardText,
       passwordToDelete
     ) {
+      let date = new Date();
       // create new reply
       let newReply = await RepliesToThreadText.create({
-        threadId: threadId,
-        threadText: threadText,
-        repliesToThreadText: repliesToThreadText,
+        boardId: boardId,
+        boardText: boardText,
+        boardDateAndTime: boardDateAndTime,
+        replyToBoardText: replyToBoardText,
+        dateAndTime: date,
         passwordToDelete: passwordToDelete,
       });
 
@@ -102,44 +183,29 @@ module.exports = function (app) {
       newReply.save();
     }
 
-    // create and save new reply
-    createAndSaveNewReply(
-      threadId,
-      threadText,
-      repliesToThreadText,
-      passwordToDelete
-    );
+    // collect available boards
+    const boards = MessageBoard.find({});
 
-    // a function to search the collection of replies for all replies matching thread id
-    async function searchForAllRepliesToThreadText(threadId) {
-      let allRepliesToThreadText = await RepliesToThreadText.find({
-        threadId: threadId,
-      });
-      return allRepliesToThreadText;
-    }
+    //// create three replies to each of the boards
+    // boards.then((data) => {
+    //   console.log("data", data);
+    //   for (let i = 0; i < data.length; i++) {
+    //     for (let j = 0; j < 3; j++) {
+    //       // create and save new reply
+    //       createAndSaveNewReply(
+    //         data[i]._id,
+    //         data[i].boardText,
+    //         data[i].dateAndTime,
+    //         `Thats good ${j}`,
+    //         data[i].passwordToDelete
+    //       );
+    //     }
+    //   }
+    // });
 
-    // search in the collection of replies for all replies matching thread id
-    let allRepliesToThreadText = searchForAllRepliesToThreadText(threadId);
+    let allRepliesToThreadText = RepliesToThreadText.find({});
     allRepliesToThreadText.then((data) => {
-      // console.log("allRepliesToThreadText", data);
-
-      // iterate the list of replies and collect replies and their ids
-      let replies = [];
-      data.forEach((reply) => {
-        replies.push({
-          replyId: reply._id,
-          reply: reply.repliesToThreadText,
-        });
-      });
-
-      // console.log("replies", replies);
-
-      // return thread id, thread text, list of replies with their ids
-      res.send({
-        threadId: threadId,
-        threadText: threadText,
-        replies: replies,
-      });
+      res.send(data);
     });
   });
 };
