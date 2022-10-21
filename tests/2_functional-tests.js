@@ -60,23 +60,7 @@ suite("Functional Tests", function () {
     //       done();
     //     });
     // });
-    // test("A. Create replies to threads: POST request to /api/replies/{board}", (done) => {
-    //   chai
-    //     .request(server)
-    //     .post("/api/replies/{board}")
-    //     .send({
-    //       threadId: "634a7e9c88f0267dea5a3684",
-    //       threadText: "Test Test 9",
-    //       replyToThreadText: "Thats good! 9",
-    //       passwordToDelete: "1239",
-    //     })
-    //     .end(function (err, res) {
-    //       // console.log("Test A response: ", res.body);
-    //       assert.equal(res.status, "200");
-    //       done();
-    //     });
-    // });
-    // test("A. Create replies to threads: POST request to /api/replies/{board}", (done) => {
+    // test("SPECIAL. Create replies to threads: POST request to /api/replies/{board}", (done) => {
     //   chai
     //     .request(server)
     //     .post("/api/replies/{board}")
@@ -99,24 +83,22 @@ suite("Functional Tests", function () {
     //       done();
     //     });
     // });
-
-    test("3. Deleting a thread with the incorrect password: DELETE request to /api/threads/{board} with an invalid delete_password", (done) => {
-      let queryParameters = new URLSearchParams({
-        boardId: "634e3f565871976c459cdf4a",
-        passwordToDelete: "123X",
-      });
-      chai
-        .request(server)
-        // .delete("/api/threads/{boards}" + queryParameters)
-        .delete("/api/threads/" + queryParameters)
-        .end((err, res) => {
-          console.log("test 3 response", res.body);
-          assert.equal(res.status, 200);
-          assert.deepInclude(res.body.board, { deletedCount: 0 });
-          done();
-        });
-    });
-
+    // test("3. Deleting a thread with the incorrect password: DELETE request to /api/threads/{board} with an invalid delete_password", (done) => {
+    //   let queryParameters = new URLSearchParams({
+    //     boardId: "634e3f565871976c459cdf4a",
+    //     passwordToDelete: "123X",
+    //   });
+    //   chai
+    //     .request(server)
+    //     // .delete("/api/threads/{board}" + queryParameters)
+    //     .delete("/api/threads/" + queryParameters)
+    //     .end((err, res) => {
+    //       console.log("test 3 response", res.body);
+    //       assert.equal(res.status, 200);
+    //       assert.deepInclude(res.body.board, { deletedCount: 0 });
+    //       done();
+    //     });
+    // });
     // test("4. Deleting a thread with the correct password: DELETE request to /api/threads/{board} with a valid delete_password", (done) => {
     //   let queryParameters = new URLSearchParams({
     //     boardId: "634e3f565871976c459cdf4a",
@@ -124,7 +106,7 @@ suite("Functional Tests", function () {
     //   });
     //   chai
     //     .request(server)
-    //     // .delete("/api/threads/{boards}" + queryParameters)
+    //     // .delete("/api/threads/{board}" + queryParameters)
     //     .delete("/api/threads/" + queryParameters)
     //     .end((err, res) => {
     //       console.log("test 4 response", res.body);
@@ -133,5 +115,37 @@ suite("Functional Tests", function () {
     //       done();
     //     });
     // });
+    // });
+
+    // test("5. Reporting a thread: PUT request to /api/threads/{board}", (done) => {
+    //   chai
+    //     .request(server)
+    //     .put("/api/threads/{board}")
+    //     .send({ board: "test", idToReport: "634e3f565871976c459cdf4a" })
+    //     .end((err, res) => {
+    //       {
+    //         // assert.equal(res.status, 200);
+    //         assert.deepInclude(res.body, { response: "reported" });
+    //         done();
+    //       }
+    //     });
+
+    test("6. Create replies to threads: POST request to /api/replies/{board}", (done) => {
+      chai
+        .request(server)
+        .post("/api/replies/{board}")
+        .send({
+          boardId: "634e3f575871976c459cdf4e",
+          boardText: "Test Test 2",
+          replyToBoardText: "Thats good! xyz",
+          passwordToDelete: "1232",
+        })
+        .end(function (err, res) {
+          console.log("Test 6 response: ", res.body);
+          assert.equal(res.status, "200");
+          assert.property(res.body, " replyToBoardText");
+          done();
+        });
+    });
   });
 });

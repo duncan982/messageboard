@@ -119,10 +119,32 @@ module.exports = function (app) {
         .catch((error) => {
           res.send({ error: "board not deleted" });
         });
+    })
+    .put((req, res) => {
+      /** Reporting a thread: PUT request to /api/threads/{board} */
+      console.log(req.body);
+      res.send({ response: "reported" });
     });
 
   app.route("/api/replies/:board").post(function (req, res) {
-    // a route to create replies to thread
+    /** Creating a new reply: POST request to /api/replies/{board}
+     */
+
+    const {
+      boardId,
+      boardText,
+      boardDateAndTime,
+      replyToBoardText,
+      passwordToDelete,
+    } = req.body;
+
+    // console.log(
+    //   boardId,
+    //   boardText,
+    //   boardDateAndTime,
+    //   replyToBoardText,
+    //   passwordToDelete
+    // );
 
     // a function to asynchronously create and save new reply
     async function createAndSaveNewReply(
@@ -134,6 +156,7 @@ module.exports = function (app) {
     ) {
       let date = new Date();
       // create new reply
+      // await new RepliesToThreadText({
       let newReply = await RepliesToThreadText.create({
         boardId: boardId,
         boardText: boardText,
@@ -142,16 +165,37 @@ module.exports = function (app) {
         dateAndTime: date,
         passwordToDelete: passwordToDelete,
       });
-
-      // save new reply
       newReply.save();
+
+      console.log("newReply 1", newReply);
+      return {
+        boardId: newReply.boardId,
+        boardText: newReply.boardText,
+        boardDateAndTime: newReply.boardDateAndTime,
+        replyToBoardText: newReply.replyToBoardText,
+        dateAndTime: newReply.dateAndTime,
+        passwordToDelete: newReply.passwordToDelete,
+      };
     }
 
-    // collect available boards
-    const boards = MessageBoard.find({});
+    // find board and create new reply
+    MessageBoard.findById({ _id: boardId }).then((board) => {
+      // console.log("board", board);
+      createAndSaveNewReply(
+        boardId,
+        boardText,
+        board.boardDateAndTime,
+        replyToBoardText,
+        passwordToDelete
+      ).then((reply) => {
+        console.log("newReply 2", reply);
+        res.send(reply);
+      });
+    });
 
     //// create three replies to each of the boards
-    // boards.then((data) => {
+    // collect available boards
+    // MessageBoard.find({}).then((data) => {
     //   console.log("data", data);
     //   for (let i = 0; i < data.length; i++) {
     //     for (let j = 0; j < 3; j++) {
@@ -166,10 +210,5 @@ module.exports = function (app) {
     //     }
     //   }
     // });
-
-    let allRepliesToThreadText = RepliesToThreadText.find({});
-    allRepliesToThreadText.then((data) => {
-      res.send(data);
-    });
   });
 };

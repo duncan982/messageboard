@@ -55,9 +55,21 @@ Deleting a thread with the incorrect password
     // if board.passowrd is similar to provided one, delete it.
     // otherwise dont        
         
- 
+Creating a new reply
+********************
+// it works partially but now it is not
+// it is not creating a new reply
+    // Creating a new reply
+        // call mongoose models
+        // create new models
+        // save it
+    // it is not returning a created reply
+        // return the above model
+   
+   
 render the returned threads
 ********************************
+
 
 
 
