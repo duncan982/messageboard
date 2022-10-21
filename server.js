@@ -32,12 +32,16 @@ mongoose
     useNewURLParser: true,
     useUnifiedTopology: true,
   })
-  .then(console.log("MongoDB is now connected."));
+  .then(console.log("MongoDB is now connected."))
+  .catch((error) => {
+    console.log("MongoDB is not connected.");
+    console.log("error", error);
+  });
 
-mongoose.connection.on("connected", () => console.log("mongoDb connected!"));
-mongoose.connection.on("disconnected", () =>
-  console.log("mongoDb disconnected!")
-);
+// mongoose.connection.on("connected", () => console.log("mongoDb connected!"));
+// mongoose.connection.on("disconnected", () =>
+//   console.log("mongoDb disconnected!")
+// );
 //Sample front-end
 app.route("/b/:board/").get(function (req, res) {
   res.sendFile(process.cwd() + "/views/board.html");

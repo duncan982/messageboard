@@ -1,15 +1,66 @@
 
-1. sort threads based on replies
-// adding replies
-    // different collection (done)
-        // merge with the respective threads (done)
-            // password/thread/ threadtext and id (done)
-                // create and save new reply (done)
-                // search in the replies for all collections matching thread id/thread text, 
-                // return thread id, thread text, list of replies with their ids
-                    // iterate the list of replies and collect replies and their ids
+Test #1: Add dates to threads and replies (done)
+*****************************************
+// Threads
 
-// finding replies
-// sort
-2. render the returned threads
-3. merge branch(es) with main
+example of required information: {board: "test9", boardText: "Test Test 9", passwordToDelete: "1239"}
+
+    // update the schemas and models with dates and time
+        // delete collections, then manually regenerate the collections
+        // regenerate the collections programatically
+            // for loops
+            // while loops
+// replies
+
+example of required information: {
+    boardId: "634a7e9c88f0267dea5a3684", boardText: "Test Test 9", repliesToBoardText: "Thats good! 9", passwordToDelete: "1239"}
+    
+    // update the schemas and models with dates and time
+        // delete collections, then manually regenerate the collections
+        // regenerate the collections programatically
+            // for loops
+            // while loops
+
+
+Test #2: Viewing the 10 most recent threads with 3 replies each
+********************************
+// sort threads based on replies
+    // adding replies (done)
+        // different collection (done)
+            // merge with the respective threads (done)
+                // password/thread/ threadtext and id (done)
+                    // create and save new reply (done)
+                    // search in the replies for all collections matching thread id/thread text, 
+                    // return thread id, thread text, list of replies with their ids
+                        // iterate the list of replies and collect replies and their ids    
+    
+    // sort the 10, most recent threads, with 3 replies each
+
+        // use mongoose collections.sort(), specify the date to the boardDateAndTime  (done and working)  
+        
+            // create an empty array of replies on board  (done)
+                // use mongoose.UpdateMany() inserting empty array (does not work)
+            // update the board reply with the replies (done)
+                    // push the replies to board array of replies
+                    // iterate replies and board
+                    // find matches by id
+                    // use mongoose.findOneAndUpdate() based on the above id
+        // select those with atleast 3 or more replies (done)
+        // select the top 10 and return them (done)
+        
+ 
+Deleting a thread with the incorrect password
+*********************************************
+// find board based on the id
+    // if board.passowrd is similar to provided one, delete it.
+    // otherwise dont        
+        
+ 
+render the returned threads
+********************************
+
+
+
+merge branch(es) with main
+********************************
+

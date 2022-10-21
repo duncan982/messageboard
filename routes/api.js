@@ -1,9 +1,9 @@
 "use strict";
 
 const { default: mongoose } = require("mongoose");
-// const moments = require("moments");
-
-// const mongoose = require("mongoose");
+const url = require("url");
+const querystring = require("querystring");
+// const URLSearchParams = require("URLSearchParams");
 
 const messageBoard = new mongoose.Schema({
   board: String,
@@ -62,99 +62,63 @@ module.exports = function (app) {
         res.send(data);
       });
     })
-    // .post(function (req, res) {
-    //   // console.log("req.body", req.body);
-    //   const { board, boardText, passwordToDelete } = req.body;
-    //   // console.log(board, boardText, passwordToDelete);
-
-    //   async function createMessageBoard(board, boardText, passwordToDelete) {
-    //     let date = new Date();
-    //     // console.log("time and date thread was created", date);
-    //     const newMessageBoard = await MessageBoard.create({
-    //       board: board,
-    //       boardText: boardText,
-    //       dateAndTime: date,
-    //       passwordToDelete: passwordToDelete,
-    //     });
-
-    //     await newMessageBoard.save();
-    //     // console.log("newMessageBoard", newMessageBoard);
-
-    //     const messages = await MessageBoard.find({});
-
-    //     return messages;
-    //   }
-
-    //   let message = createMessageBoard(board, boardText, passwordToDelete);
-    //   message.then((data) => {
-    //     // console.log("data", data);
-    //     res.send(data);
-    //   });
-    // });
     .get(function (req, res) {
       /** aroute to sort the 10 most recent threads with 3 replies each */
-      const { recentThreads, replies } = req.body;
+      // const { recentThreads, replies } = req.body;
 
       /** push the replies to board array of replies*/
-      // iterate replies
-      RepliesToThreadText.find({}).then((replies) => {
-        replies.forEach((reply) => {
-          // find matches by id
-          MessageBoard.findById({ _id: reply.boardId }).then((board) => {
-            console.log("board before", board);
+      // RepliesToThreadText.find({}).then((replies) => {
+      //   // iterate replies
+      //   replies.forEach((reply) => {
+      //     // find boards that matches by id
+      //     MessageBoard.findById({ _id: reply.boardId }).then((board) => {
+      //       // console.log("board before", board);
 
-            // update list of reply with the current reply
-            board.repliesToBoardText.push(reply.replyToBoardText);
-            console.log("board after", board);
-          });
-        });
-      });
-      //     console.log("board before", board);
-      // // }
-      // });
-
-      // use mongoose.findOneAndUpdate() based on the above id
-
-      // // find treads, sort by date in a descending manner
-      // let sortedRepliesToThreadTextByDate = RepliesToThreadText.find({}).sort({
-      //   boardDateAndTime: "descending",
-      // });
-
-      // sortedRepliesToThreadTextByDate.then((data) => {
-      //   // console.log("all threads", data);
-
-      //   // select those with atleast 3 or more replies
-      //   // select the top 10 and return them
-      //   // console.log("top 10 threads", data.slice(0, 9).length());
-      // });
-      // select the top 10 and return them
-      // search in the replies for all thread and replies collections,
-      // sort based on time/date
-      // select those with atleast 3 or more replies
-      // select the top 10 and return them
-
-      //   // a function to find all threads, sort based on time/date and with atleast 3 or more replies then select the top 10 and return them
-      //   async function searchForAllThreads(recentThreads, replies) {
-      //     let allThreads = await MessageBoard.find({});
-
-      //     let allThreadsSortedByTimeAndReplies = [];
-      //     allThreads.then((data) => {
-      //       console.log("all threads", data);
-
-      //       // sort based on time/date
-      //       // select those with atleast 3 or more replies
+      //       // update board's list of reply with the current reply
+      //       board.repliesToBoardText.push(reply.replyToBoardText);
+      //       board.save();
+      //       console.log("board after", board);
       //     });
-      //     // select the top 10 and return them
-      //     let allThreadsMatchingSelectionCriteria = [];
-      //     return allThreadsMatchingSelectionCriteria;
-      //   }
-
-      //   // search in the collection of replies for all replies matching thread id
-      //   let allmatchingThreads = searchForAllThreads(recentThreads, replies);
-      //   allmatchingThreads.then((data) => {
-      //     console.log("allmatchingThreads", data);
-      //     res.send(data);
       //   });
+      // });
+
+      /** find all threads, sort based on time/date and select those with
+       * atleast 3 or more replies then select the top 10 and return them */
+      MessageBoard.find({})
+        .sort({ dateAndTime: "descending" })
+        .then((boards) => {
+          // console.log("all threads sorted descending", boards);
+          // select the top 10 boards with atleast 3 or more replies
+          let selectedBoards = boards
+            .filter((board) => {
+              // return board.repliesToBoardText.length >= replies;
+              return board.repliesToBoardText.length >= 3;
+            })
+            // .slice(0, recentThreads);
+            .slice(0, 10);
+          // console.log(selectedBoards);
+          // console.log(selectedBoards.length);
+          // res.send(selectedBoards);
+          res.json({ selectedBoards });
+        });
+    })
+    .delete(function (req, res) {
+      /** Deleting a thread with the incorrect/correct password: DELETE request to
+       * /api/threads/{board} with an invalid/valid  delete_password" */
+
+      const { boardId, passwordToDelete } = querystring.parse(req.params.board);
+
+      // find board based on the id delete if it matches
+      MessageBoard.deleteOne(
+        { _id: boardId },
+        { passwordToDelete: passwordToDelete }
+      )
+        .then((board) => {
+          res.send({ board: board });
+        })
+        .catch((error) => {
+          res.send({ error: "board not deleted" });
+        });
     });
 
   app.route("/api/replies/:board").post(function (req, res) {
