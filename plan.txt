@@ -65,7 +65,10 @@ Creating a new reply
         // save it
     // it is not returning a created reply
         // return the above model
-   
+
+
+/** Viewing a single thread with all replies */
+// cant filter an array from mognoos.find()
    
 render the returned threads
 ********************************

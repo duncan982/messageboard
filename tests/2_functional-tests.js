@@ -130,20 +130,36 @@ suite("Functional Tests", function () {
     //       }
     //     });
 
-    test("6. Create replies to threads: POST request to /api/replies/{board}", (done) => {
+    // test("6. Create replies to threads: POST request to /api/replies/{board}", (done) => {
+    //   chai
+    //     .request(server)
+    //     .post("/api/replies/{board}")
+    //     .send({
+    //       boardId: "634e3f575871976c459cdf4e",
+    //       boardText: "Test Test 2",
+    //       replyToBoardText: "Thats good! xyz",
+    //       passwordToDelete: "1232",
+    //     })
+    //     .end(function (err, res) {
+    //       console.log("Test 6 response: ", res.body);
+    //       assert.equal(res.status, "200");
+    //       assert.property(res.body, " replyToBoardText");
+    //       done();
+    //     });
+    // });
+
+    test("7. Viewing a single thread with all replies: GET request to /api/replies/{board}", (done) => {
+      let idToQuery = new URLSearchParams({
+        boardId: "634e3f565871976c459cdf46",
+      });
       chai
         .request(server)
-        .post("/api/replies/{board}")
-        .send({
-          boardId: "634e3f575871976c459cdf4e",
-          boardText: "Test Test 2",
-          replyToBoardText: "Thats good! xyz",
-          passwordToDelete: "1232",
-        })
-        .end(function (err, res) {
-          console.log("Test 6 response: ", res.body);
-          assert.equal(res.status, "200");
-          assert.property(res.body, " replyToBoardText");
+        .get("/api/replies/" + idToQuery)
+        // .send({ boradId: "634e3f575871976c459cdf4e" })
+        .end((err, res) => {
+          // console.log("Test 7 response: ", res.body);
+          assert.equal(res.status, 200);
+          assert.isArray(res.body);
           done();
         });
     });

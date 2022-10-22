@@ -126,89 +126,110 @@ module.exports = function (app) {
       res.send({ response: "reported" });
     });
 
-  app.route("/api/replies/:board").post(function (req, res) {
-    /** Creating a new reply: POST request to /api/replies/{board}
-     */
+  app
+    .route("/api/replies/:board")
+    .post(function (req, res) {
+      /** Creating a new reply: POST request to /api/replies/{board}
+       */
 
-    const {
-      boardId,
-      boardText,
-      boardDateAndTime,
-      replyToBoardText,
-      passwordToDelete,
-    } = req.body;
+      const { boardId, boardText, replyToBoardText, passwordToDelete } =
+        req.body;
 
-    // console.log(
-    //   boardId,
-    //   boardText,
-    //   boardDateAndTime,
-    //   replyToBoardText,
-    //   passwordToDelete
-    // );
+      // console.log(
+      //   boardId,
+      //   boardText,
+      //   boardDateAndTime,
+      //   replyToBoardText,
+      //   passwordToDelete
+      // );
 
-    // a function to asynchronously create and save new reply
-    async function createAndSaveNewReply(
-      boardId,
-      boardText,
-      boardDateAndTime,
-      replyToBoardText,
-      passwordToDelete
-    ) {
-      let date = new Date();
-      // create new reply
-      // await new RepliesToThreadText({
-      let newReply = await RepliesToThreadText.create({
-        boardId: boardId,
-        boardText: boardText,
-        boardDateAndTime: boardDateAndTime,
-        replyToBoardText: replyToBoardText,
-        dateAndTime: date,
-        passwordToDelete: passwordToDelete,
-      });
-      newReply.save();
-
-      console.log("newReply 1", newReply);
-      return {
-        boardId: newReply.boardId,
-        boardText: newReply.boardText,
-        boardDateAndTime: newReply.boardDateAndTime,
-        replyToBoardText: newReply.replyToBoardText,
-        dateAndTime: newReply.dateAndTime,
-        passwordToDelete: newReply.passwordToDelete,
-      };
-    }
-
-    // find board and create new reply
-    MessageBoard.findById({ _id: boardId }).then((board) => {
-      // console.log("board", board);
-      createAndSaveNewReply(
+      // a function to asynchronously create and save new reply
+      async function createAndSaveNewReply(
         boardId,
         boardText,
-        board.boardDateAndTime,
+        boardDateAndTime,
         replyToBoardText,
         passwordToDelete
-      ).then((reply) => {
-        console.log("newReply 2", reply);
-        res.send(reply);
-      });
-    });
+      ) {
+        let date = new Date();
+        // create new reply
+        // await new RepliesToThreadText({
+        let newReply = await RepliesToThreadText.create({
+          boardId: boardId,
+          boardText: boardText,
+          boardDateAndTime: boardDateAndTime,
+          replyToBoardText: replyToBoardText,
+          dateAndTime: date,
+          passwordToDelete: passwordToDelete,
+        });
+        newReply.save();
 
-    //// create three replies to each of the boards
-    // collect available boards
-    // MessageBoard.find({}).then((data) => {
-    //   console.log("data", data);
-    //   for (let i = 0; i < data.length; i++) {
-    //     for (let j = 0; j < 3; j++) {
-    //       // create and save new reply
-    //       createAndSaveNewReply(
-    //         data[i]._id,
-    //         data[i].boardText,
-    //         data[i].dateAndTime,
-    //         `Thats good ${j}`,
-    //         data[i].passwordToDelete
-    //       );
-    //     }
-    //   }
-    // });
-  });
+        console.log("newReply 1", newReply);
+        return {
+          boardId: newReply.boardId,
+          boardText: newReply.boardText,
+          boardDateAndTime: newReply.boardDateAndTime,
+          replyToBoardText: newReply.replyToBoardText,
+          dateAndTime: newReply.dateAndTime,
+          passwordToDelete: newReply.passwordToDelete,
+        };
+      }
+
+      // find board and create new reply
+      MessageBoard.findById({ _id: boardId }).then((board) => {
+        // console.log("board", board);
+        createAndSaveNewReply(
+          boardId,
+          boardText,
+          board.boardDateAndTime,
+          replyToBoardText,
+          passwordToDelete
+        ).then((reply) => {
+          console.log("newReply 2", reply);
+          res.send(reply);
+        });
+      });
+
+      //// create three replies to each of the boards
+      // collect available boards
+      // MessageBoard.find({}).then((data) => {
+      //   console.log("data", data);
+      //   for (let i = 0; i < data.length; i++) {
+      //     for (let j = 0; j < 3; j++) {
+      //       // create and save new reply
+      //       createAndSaveNewReply(
+      //         data[i]._id,
+      //         data[i].boardText,
+      //         data[i].dateAndTime,
+      //         `Thats good ${j}`,
+      //         data[i].passwordToDelete
+      //       );
+      //     }
+      //   }
+      // });
+    })
+    .get((req, res) => {
+      /** Viewing a single thread with all replies: GET request to /api/replies/{board} */
+
+      // console.log(req.url);
+      // console.log("req.params", req.params.board);
+      const boardId = querystring.parse(req.params.board);
+      // console.log("boardId", boardId);
+
+      let actualboardId = boardId.boardId;
+      // console.log("actualboardId", actualboardId);
+
+      // iterate list of replies and find matching based on id
+      RepliesToThreadText.find({ boardId: actualboardId })
+        .then((replies) => {
+          // console.log("replies", replies);
+          res.send(replies);
+        })
+        .catch((error) => {
+          console.log(
+            "Not able to find replies to the supplied board id",
+            error
+          );
+        });
+    });
 };
