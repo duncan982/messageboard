@@ -68,8 +68,17 @@ Creating a new reply
 
 
 /** Viewing a single thread with all replies */
-// cant filter an array from mognoos.find()
-   
+// not returning response
+// inner workings?
+    // partially
+
+
+/** node mongoose  post delete request returning collection but not creating collection */
+// 1. use .findOneAndUpdate() to update replies
+// 2. use upsert etc on the current approach
+
+
+
 render the returned threads
 ********************************
 
