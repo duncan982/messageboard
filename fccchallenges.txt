@@ -1,0 +1,136 @@
+POST : /api/threads/:board
+req.body {
+  text: 'fcc_test_Fri Oct 28 2022 21:06:04 GMT+0200 (Central European Summer Time)',
+  delete_password: 'delete_me'
+}
+req.params { board: 'fcc_test' }
+req.query {}
+undefined text: fcc_test_Fri Oct 28 2022 21:06:04 GMT+0200 (Central European Summer Time) delete_password delete_me
+newMessageBoard {
+  _id: new ObjectId("635c281d0d676d95ae7edcdf"),
+  board: 'board',
+  text: 'fcc_test_Fri Oct 28 2022 21:06:04 GMT+0200 (Central European Summer Time)',
+  created_on: 2022-10-28T19:06:05.015Z,
+  bumped_on: 2022-10-28T19:06:05.015Z,
+  reported: false,
+  delete_password: 'delete_me',
+  replies: [
+    {
+      text: '',
+      created_on: 2022-10-28T19:06:05.015Z,
+      delete_password: '',
+      reported: false,
+      _id: new ObjectId("635c281d0d676d95ae7edce0")
+    }
+  ]
+}
+GET : /api/threads/:board
+req.params { board: 'fcc_test' }
+req.body {}
+req.query {}
+bumped_on selectedBoards.length: 10
+GET : /api/threads/:board
+req.params { board: 'fcc_test' }
+req.body {}
+req.query {}
+bumped_on selectedBoards.length: 10
+POST : /api/replies/:board
+req.body {
+  text: 'fcc_test_reply_Fri Oct 28 2022 21:06:06 GMT+0200 (Central European Summer Time)',
+  delete_password: 'delete_me'
+}
+req.params { board: 'fcc_test' }
+req.query {}
+GET : /api/replies/:board
+req.body {}
+req.params { board: 'fcc_test' }
+req.query { thread_id: 'undefined' }
+GET : /api/threads/:board
+req.params { board: 'fcc_test' }
+req.body {}
+req.query {}
+bumped_on selectedBoards.length: 10
+GET : /api/threads/:board
+req.params { board: 'fcc_test' }
+req.body {}
+req.query {}
+bumped_on selectedBoards.length: 10
+GET : /api/replies/:board
+req.body {}
+req.params { board: 'fcc_test' }
+req.query { thread_id: 'undefined' }
+GET : /api/threads/:board
+req.params { board: 'fcc_test' }
+req.body {}
+req.query {}
+bumped_on selectedBoards.length: 10
+DELETE : /api/threads/:board
+req.body { delete_password: 'wrong_password' }
+req.params { board: 'fcc_test' }
+req.query {}
+DELETE : /api/threads/:board
+req.body { delete_password: 'delete_me' }
+req.params { board: 'fcc_test' }
+req.query {}
+POST : /api/threads/:board
+req.body { text: 'fcc_test_thread', delete_password: 'delete_me' }
+req.params { board: 'fcc_test' }
+req.query {}
+undefined text: fcc_test_thread delete_password delete_me
+newMessageBoard {
+  _id: new ObjectId("635c28210d676d95ae7eea12"),
+  board: 'board',
+  text: 'fcc_test_thread',
+  created_on: 2022-10-28T19:06:09.350Z,
+  bumped_on: 2022-10-28T19:06:09.350Z,
+  reported: false,
+  delete_password: 'delete_me',
+  replies: [
+    {
+      text: '',
+      created_on: 2022-10-28T19:06:09.350Z,
+      delete_password: '',
+      reported: false,
+      _id: new ObjectId("635c28210d676d95ae7eea13")
+    }
+  ]
+}
+GET : /api/threads/:board
+req.params { board: 'fcc_test' }
+req.body {}
+req.query {}
+bumped_on selectedBoards.length: 10
+POST : /api/replies/:board
+req.body { text: 'fcc_test_reply', delete_password: 'delete_me' }
+req.params { board: 'fcc_test' }
+req.query {}
+GET : /api/threads/:board
+req.params { board: 'fcc_test' }
+req.body {}
+req.query {}
+bumped_on selectedBoards.length: 10
+DELETE : /api/replies/:board
+req.body { delete_password: 'delete_me' }
+req.params { board: 'fcc_test' }
+req.query {}
+thread_id: undefined replyId: undefined delete_password: undefined
+GET : /api/threads/:board
+req.params { board: 'fcc_test' }
+req.body {}
+req.query {}
+bumped_on selectedBoards.length: 10
+PUT : /api/threads/:board
+req.body {}
+req.params { board: 'fcc_test' }
+req.query {}
+thread_id undefined
+GET : /api/threads/:board
+req.params { board: 'fcc_test' }
+req.body {}
+req.query {}
+bumped_on selectedBoards.length: 10
+PUT : /api/replies/:board
+req.body {}
+req.params { board: 'fcc_test' }
+req.query {}
+thread_id undefined reply_id undefined

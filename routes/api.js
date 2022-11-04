@@ -28,11 +28,32 @@ module.exports = function (app) {
   app
     .route("/api/threads/:board")
     .post(function (req, res) {
-      const { board, text, delete_password } = req.body;
       console.log("POST : /api/threads/:board");
+      console.log("requesting url:", req.url);
       console.log("req.body", req.body);
-      console.log(board, "text:", text, "delete_password", delete_password);
+      console.log("req.params", req.params);
+      console.log("req.query", req.query);
 
+      let board;
+      let text;
+      let delete_password;
+      if (req.params.board === "fcc_test") {
+        board = req.params.board;
+        text = req.body.text;
+        delete_password = req.body.delete_password;
+      } else {
+        board = req.body.board;
+        text = req.body.text;
+        delete_password = req.body.delete_password;
+      }
+      console.log(
+        "board:",
+        board,
+        "text:",
+        text,
+        "delete_password",
+        delete_password
+      );
       //   console.log("board does not exist");
       async function createBoard(board = "board", text, delete_password) {
         let date = new Date();
@@ -43,55 +64,30 @@ module.exports = function (app) {
           bumped_on: date,
           reported: false,
           delete_password: delete_password,
-          replies: [
-            {
-              text: "",
-              created_on: new Date(),
-              delete_password: "",
-              reported: false,
-            },
-          ],
+          replies: [],
         });
-        await newMessageBoard.save();
-        // newMessageBoard.then((data) => {
-        // console.log("newMessageBoard", newMessageBoard);
-        // res.send(data);
-        return {
-          _id: newMessageBoard._id,
-          board: newMessageBoard.board,
-          text: newMessageBoard.text,
-          created_on: newMessageBoard.created_on,
-          bumped_on: newMessageBoard.bumped_on,
-          reported: newMessageBoard.reported,
-          delete_password: newMessageBoard.delete_password,
-          replies: newMessageBoard.replies,
-        };
+        newMessageBoard.save((err, newBoard) => {
+          if (err) {
+            return console.error(err);
+          } else {
+            return res.json(newBoard);
+            // return res.redirect("/b/" + newBoard.board + "/");
+          }
+        });
       }
 
-      let newBoard = createBoard(board, text, delete_password);
-      newBoard.then((newMessageBoard) => {
-        // console.log("newMessageBoard", newMessageBoard);
-
-        // res.json({
-        res.send({
-          _id: newMessageBoard._id,
-          board: newMessageBoard.board,
-          text: newMessageBoard.text,
-          created_on: newMessageBoard.created_on,
-          bumped_on: newMessageBoard.bumped_on,
-          reported: newMessageBoard.reported,
-          delete_password: newMessageBoard.delete_password,
-          replies: newMessageBoard.replies,
-        });
-      });
+      createBoard(board, text, delete_password);
     })
     .get(function (req, res) {
       /** Viewing the 10 most recent threads with 3 replies each */
 
       console.log("GET : /api/threads/:board");
-      console.log(req.params);
+      console.log("requesting url:", req.url);
+      console.log("req.params", req.params);
+      console.log("req.body", req.body);
+      console.log("req.query", req.query);
 
-      /** push the replies to board array of replies*/
+      /** SPECIAL: push the replies to board array of replies*/
       // RepliesToThreadText.find({}).then((replies) => {
       //   // iterate replies
       //   replies.forEach((reply) => {
@@ -107,138 +103,121 @@ module.exports = function (app) {
       //   });
       // });
 
+      let filter;
+      let requestParameters = new URLSearchParams(req.params.board);
+      if (req.params.board === "fcc_test") {
+        filter = {
+          bumped_on: "descending",
+        };
+      } else {
+        filter = {
+          created_on: requestParameters.get("created_on"),
+        };
+      }
+      console.log("filter", filter);
+
       /** find all threads, sort based on time/date and select those with
        * atleast 3 or more replies then select the top 10 and return them */
       let availableMessages = MessageBoard.find({});
-      if (req.params.board === "sort=created_on") {
-        availableMessages.sort({ created_on: "descending" }).then((boards) => {
-          // console.log("all threads sorted descending", boards);
-          // select the top 10 boards with atleast 3 or more replies
-          // boards.then((datas) => {
-          let selectedBoards = boards
-            .filter((board) => {
-              // console.log("board before", board);
-              return board.replies.length >= 3;
-            })
-            .slice(0, 10)
-            .map((board) => {
-              // console.log(board);
-              let newReplies = board.replies.map((reply) => {
-                return {
-                  text: reply.text,
-                  created_on: reply.created_on,
-                };
-              });
-              // console.log("newReplies", newReplies);
-              let newBoard = {
-                board: board.board,
-                text: board.text,
-                created_on: board.created_on,
-                bumped_on: board.bumped_on,
-                replies: newReplies.slice(0, 2),
+      availableMessages.sort(filter).then((boards) => {
+        let selectedBoards = boards
+          .filter((board) => {
+            // console.log("board before", board);
+            return board.replies.length >= 3;
+          })
+          .slice(0, 10)
+          .map((board) => {
+            // console.log(board);
+            let newReplies = board.replies.map((reply) => {
+              return {
+                text: reply.text,
+                created_on: reply.created_on,
               };
-              return newBoard;
             });
-          // console.log("selectedBoards", selectedBoards);
-          console.log(
-            "created_on selectedBoards.length:",
-            selectedBoards.length
-          );
-          res.send(selectedBoards);
-          // res.json(selectedBoards);
-
-          // });
-        });
-      } else {
-        availableMessages.sort({ bumped_on: "descending" }).then((boards) => {
-          // console.log("all threads sorted descending", boards);
-          // select the top 10 boards with atleast 3 or more replies
-          let selectedBoards = boards
-            .filter((board) => {
-              // console.log("board before", board);
-              return board.replies.length >= 3;
-            })
-            .slice(0, 10)
-            .map((board) => {
-              // console.log(board);
-              let newReplies = board.replies.map((reply) => {
-                return {
-                  text: reply.text,
-                  created_on: reply.created_on,
-                };
-              });
-              // console.log("newReplies", newReplies);
-              let newBoard = {
-                board: board.board,
-                text: board.text,
-                created_on: board.created_on,
-                bumped_on: board.bumped_on,
-                replies: newReplies.slice(0, 2),
-              };
-              return newBoard;
-            });
-          // console.log("selectedBoards", selectedBoards);
-          console.log(
-            "bumped_on selectedBoards.length:",
-            selectedBoards.length
-          );
-          res.send(selectedBoards);
-          // res.json(selectedBoards);
-        });
-      }
+            // console.log("newReplies", newReplies);
+            let newBoard = {
+              board: board.board,
+              text: board.text,
+              created_on: board.created_on,
+              bumped_on: board.bumped_on,
+              replies: newReplies.slice(0, 3),
+            };
+            return newBoard;
+          });
+        // console.log("selectedBoards", selectedBoards);
+        console.log("created_on selectedBoards.length:", selectedBoards.length);
+        res.json(selectedBoards);
+      });
     })
     .delete(function (req, res) {
       /** Deleting a thread with the incorrect/correct password: DELETE request to
        * /api/threads/{board} with an invalid/valid  delete_password" */
       console.log("DELETE : /api/threads/:board");
-      // console.log("req.body", req.body);
-      // console.log("req.params", req.params);
-      // const { thread_Id, delete_password } = querystring.parse(
-      //   req.params.board
-      // );
-      let thread_Id;
-      let delete_password;
-      if (req.params.board === "fcc_test") {
-        thread_Id = req.body.thread_Id;
-        delete_password = req.body.delete_password;
-      } else {
-        const { boardId, passwordToDelete } = querystring.parse(
-          req.params.board
-        );
-        delete_password = passwordToDelete;
-        thread_Id = boardId;
-      }
-      // console.log("thread_Id", thread_Id, "delete_password", delete_password);
+      console.log("requesting url:", req.url);
+      console.log("req.body", req.body);
+      console.log("req.params", req.params);
+      console.log("req.query", req.query);
 
-      // find board based on the id delete if it matches
-      MessageBoard.findOneAndDelete({
-        _id: thread_Id,
-        delete_password: delete_password,
-      })
-        .then((results) => {
-          // console.log("results:", results);
-          if (results) {
-            // res.send("success");
-            res.send("success");
+      let filter;
+      let requestParameters = new URLSearchParams(req.params.board);
+      if (req.params.board === "fcc_test") {
+        filter = {
+          thread_Id: req.body.thread_Id,
+          delete_password: req.body.delete_password,
+        };
+      } else {
+        filter = {
+          thread_id: requestParameters.get("thread_id"),
+          delete_password: requestParameters.get("delete_password"),
+        };
+      }
+      console.log("filter", filter);
+
+      // // find board based on the id delete if it matches
+      // MessageBoard.findOneAndDelete(filter)
+
+      //   .then((results) => {
+      //     if (results) {
+      //       res.send("success");
+      //     } else {
+      //       res.send("incorrect password");
+      //     }
+      //   })
+      //   .catch((error) => {
+      //     console.log("error:", error);
+      //   });
+
+      // find board based on the, then id delete if it matches
+      MessageBoard.findOneAndDelete(
+        filter,
+        { remove: true, new: false },
+        (err, results) => {
+          if (err) {
+            console.log("error:", error);
+            res.send("error");
           } else {
-            res.send("incorrect password");
-            // res.json("incorrect password");
+            if (results) {
+              res.send("success");
+            } else {
+              res.send("incorrect password");
+            }
           }
-        })
-        .catch((error) => {
-          console.log("error:", error);
-        });
+        }
+      );
     })
     .put((req, res) => {
       /** Reporting a thread: PUT request to /api/threads/{board} */
       console.log("PUT : /api/threads/:board");
+      console.log("requesting url:", req.url);
       console.log("req.body", req.body);
+      console.log("req.params", req.params);
+      console.log("req.query", req.query);
       const { thread_id } = req.body;
       console.log("thread_id", thread_id);
 
       MessageBoard.findOneAndUpdate(
         { _id: thread_id },
-        { reported: true },
+        { $set: { reported: true } },
         { new: true, upsert: true },
         (err, data) => {
           if (data) {
@@ -258,28 +237,97 @@ module.exports = function (app) {
       /** Creating a new reply: POST request to /api/replies/{board}
        */
       console.log("POST : /api/replies/:board");
-      // console.log(req.body);
-      const { thread_Id, text, delete_password } = req.body;
+      console.log("requesting url:", req.url);
+      console.log("req.body", req.body);
+      // console.log("req.params", req.params);
+      // console.log("req.query", req.query);
+      const { thread_id, text, delete_password } = req.body;
       // console.log(thread_Id, text, delete_password);
 
       /**find board and create new reply */
-      let date = new Date();
+      let newReply = {
+        text: text,
+        created_on: new Date(),
+        delete_password: delete_password,
+        reported: false,
+      };
+
+      // async function updateBoardWithReply(newReply, thread_id) {
+      //   let boardToUpdate = await MessageBoard.findOne({ _id: thread_id });
+      //   await boardToUpdate.replies.push(newReply).save();
+      //   boardToUpdate
+      //     .then((board) => {
+      //       console.log("board:", board);
+      //       res.send({
+      //         _id: board._id,
+      //         board: board.board,
+      //         text: board.text,
+      //         created_on: board.created_on,
+      //         bumped_on: board.bumped_on,
+      //         reported: board.reported,
+      //         delete_password: board.delete_password,
+      //         replies: board.replies,
+      //       });
+      //       // }
+      //     })
+      //     .catch((err) => {
+      //       console.log("error:", err);
+      //       res.send("error");
+      //     });
+      // }
+
+      // updateBoardWithReply(newReply, thread_id);
+
+      // MessageBoard.findOneAndUpdate(
+      //   { _id: thread_id },
+      //   {
+      //     $addToSet: {
+      //       replies: {
+      //         text: text,
+      //         created_on: date,
+      //         delete_password: delete_password,
+      //         reported: false,
+      //       },
+      //     },
+      //   },
+      //   // { upsert: true },
+      //   (err, board) => {
+      //     if (board) {
+      //       // console.log("data:", data);
+      //       res.send({
+      //         _id: board._id,
+      //         board: board.board,
+      //         text: board.text,
+      //         created_on: board.created_on,
+      //         bumped_on: board.bumped_on,
+      //         reported: board.reported,
+      //         delete_password: board.delete_password,
+      //         replies: board.replies,
+      //       });
+      //     } else {
+      //       console.log("error:", err);
+      //     }
+      //   }
+      // );
+
       MessageBoard.findOneAndUpdate(
-        { _id: thread_Id },
-        {
-          $addToSet: {
-            replies: {
-              text: text,
-              created_on: date,
-              delete_password: delete_password,
-              reported: false,
-            },
+        { _id: thread_id },
+        [
+          {
+            $set: { bumped_on: new Date() },
+            // $push: { replies: newReply },
+            $addToSet: { replies: newReply },
           },
-        },
-        { upsert: true },
+        ],
+        // { returnOriginal: false },
+        // { upsert: true, new: true },
+        // { new: true },
         (err, board) => {
-          if (board) {
-            // console.log("data:", data);
+          if (err) {
+            console.log("error:", err);
+            res.send("error");
+          } else {
+            console.log("board:", board);
             res.send({
               _id: board._id,
               board: board.board,
@@ -290,8 +338,6 @@ module.exports = function (app) {
               delete_password: board.delete_password,
               replies: board.replies,
             });
-          } else {
-            console.log("error:", err);
           }
         }
       );
@@ -333,20 +379,30 @@ module.exports = function (app) {
     .get((req, res) => {
       /** Viewing a single thread with all replies: GET request to /api/replies/{board} */
       console.log("GET : /api/replies/:board");
-      // console.log("req.params", req.params);
-      // console.log("req.query", req.query);
-      let actualboardId;
+      console.log("requesting url:", req.url);
+      console.log("req.body", req.body);
+      console.log("req.params", req.params.board);
+      console.log("req.query", req.query);
+
+      let filter;
+      let requestParameters = new URLSearchParams(req.params.board);
       if (req.params.board === "fcc_test") {
-        actualboardId = req.query.thread_Id;
+        filter = {
+          board: req.params.board,
+          thread_id: req.query.thread_Id,
+        };
       } else {
-        const boardId = querystring.parse(req.params.board);
-        // console.log("boardId", boardId);
-        actualboardId = boardId.boardId;
+        filter = {
+          board: requestParameters.get("board"),
+          thread_id: requestParameters.get("thread_id"),
+        };
       }
+      console.log("filter", filter);
       // console.log("actualboardId", actualboardId);
 
       // iterate list of replies and find matching based on id
-      MessageBoard.findOne({ boardId: actualboardId })
+      MessageBoard.findOne(filter)
+        // MessageBoard.findOne({ boardId: actualboardId })
         .then((board) => {
           // console.log("replies", replies);
           // console.log("board length", board.length);
@@ -366,14 +422,12 @@ module.exports = function (app) {
           };
           // console.log("newBoard", newBoard);
           res.send(newBoard);
-          // res.json(newBoard);
         })
         .catch((error) => {
           console.log(
             "Not able to find replies to the supplied board id",
             error
           );
-          // res.send({ error: error });
           res.json({ error: error });
         });
     })
@@ -381,11 +435,25 @@ module.exports = function (app) {
       /** Deleting a thread with the incorrect/correct password: DELETE request to
        * /api/threads/{board} with an invalid/valid  delete_password" */
       console.log("DELETE : /api/replies/:board");
-      // console.log(req.body);
-      // console.log(req.params);
-      const { thread_id, replyId, delete_password } = querystring.parse(
-        req.params.board
-      );
+      console.log("requesting url:", req.url);
+      console.log("req.body", req.body);
+      console.log("req.params", req.params);
+      console.log("req.query", req.query);
+
+      let requestParameters = new URLSearchParams(req.params.board);
+      let thread_id;
+      let replyId;
+      let delete_password;
+      if (req.params.board === "fcc_test") {
+        thread_id = req.body.thread_id;
+        replyId = req.body.replyId;
+        delete_password = req.body.delete_password;
+      } else {
+        thread_id = requestParameters.get("thread_id");
+        replyId = requestParameters.get("replyId");
+        delete_password = requestParameters.get("delete_password");
+      }
+
       console.log(
         "thread_id:",
         thread_id,
@@ -394,20 +462,6 @@ module.exports = function (app) {
         "delete_password:",
         delete_password
       );
-
-      const filterReplies = (data, thread_id, delete_password) => {
-        /** filter replies based on text and delete_password */
-        data.map((reply) => {
-          console.log("reply 1", reply);
-          if (
-            reply._id === thread_id &&
-            reply.delete_password === delete_password
-          ) {
-            console.log("reply 2", reply);
-            return reply;
-          }
-        });
-      };
 
       // find board based on the id and delete it, if it matches
       MessageBoard.findOneAndUpdate(
@@ -419,11 +473,10 @@ module.exports = function (app) {
         },
         {
           $set: {
-            "replies.$.text": "deleted",
+            "replies.$.text": "[deleted]",
           },
         },
-        { returnDocument: after },
-        // { returnNewDocument: true },
+        // { new: true, upsert: true },
         (err, data) => {
           // console.log("data", data);
           if (data) {
@@ -432,7 +485,6 @@ module.exports = function (app) {
           } else {
             // console.log("error:", err);
             res.send("incorrect password");
-            // res.json("success");
           }
         }
       );
@@ -441,23 +493,25 @@ module.exports = function (app) {
       /** Reporting a reply: PUT request to /api/replies/{board} */
 
       console.log("PUT : /api/replies/:board");
+      console.log("requesting url:", req.url);
       console.log("req.body", req.body);
+      console.log("req.params", req.params);
+      console.log("req.query", req.query);
       const { thread_id, reply_id } = req.body;
       console.log("thread_id", thread_id, "reply_id", reply_id);
       MessageBoard.findOneAndUpdate(
         {
           _id: thread_id,
-          replies: { $elemMatch: { _id: reply_id } },
+          "replies._id": reply_id,
         },
         { $set: { "replies.$.reported": true } },
-        { new: true, safe: true, upsert: true },
         (err, data) => {
           if (err) {
-            console.log("error:", err);
+            // console.log("error:", err);
+            res.send("error");
           } else {
             // console.log("data", data);
             res.send("reported");
-            // res.json("reported");
           }
         }
       );

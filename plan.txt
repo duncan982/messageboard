@@ -68,22 +68,28 @@ Creating a new reply
 
 
 /** Viewing a single thread with all replies */
-// not returning response
-// inner workings?
-    // partially
+    // not returning response
+    // inner workings?
+        // partially
 
 
 /** node mongoose  post delete request returning collection but not creating collection */
-// 1. use .findOneAndUpdate() to update replies
-// 2. use upsert etc on the current approach
+    // 1. use .findOneAndUpdate() to update replies
+    // 2. use upsert etc on the current approach
 
-
+/** fcc challenges that are failing */
+    //1. POST : /api/threads/:board
+        // different format of request details
+            // already adapted but still not working
+        // usage of redirect
+            // seems optional?
+            //
+            
+    // Second last option: check others implementation
+    // Last option: post on forum for help 
 
 render the returned threads
 ********************************
-
-
-
 
 merge branch(es) with main
 ********************************

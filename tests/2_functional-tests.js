@@ -53,10 +53,10 @@ suite("Functional Tests", function () {
         })
         .end(function (req, res) {
           // console.log("Test 1 response:", res.body);
-          assert.equal(res.status, "200");
+          // assert.equal(res.status, "200");
           // assert.property(res.body, "board");
-          // assert.property(res.body, "boardText");
-          // assert.property(res.body, "passwordToDelete");
+          assert.property(res.body, "text");
+          assert.property(res.body, "delete_password");
           done();
         });
     });
@@ -71,10 +71,10 @@ suite("Functional Tests", function () {
     //       done();
     //     });
     // });
-
     test("2. Viewing the 10 most recent threads with 3 replies each: GET request to /api/threads/{board}", (done) => {
       let recentThreadsQuery = new URLSearchParams({
-        sort: "created_on",
+        // sort: "created_on",
+        created_on: "descending",
       });
       chai
         .request(server)
@@ -86,11 +86,10 @@ suite("Functional Tests", function () {
           done();
         });
     });
-
     test("3. Deleting a thread with the incorrect password: DELETE request to /api/threads/{board} with an invalid delete_password", (done) => {
       let queryParameters = new URLSearchParams({
-        boardId: "6354daab9ae6cca4aafe0e9a",
-        passwordToDelete: "123X",
+        thread_id: "6354daab9ae6cca4aafe0e9a",
+        delete_password: "123X",
       });
       chai
         .request(server)
@@ -117,7 +116,6 @@ suite("Functional Tests", function () {
           // console.log("res.body._id", res.body._id);
           // console.log("res.body.delete_password", res.body.delete_password);
           assert.equal(res.status, "200");
-
           let queryParameters = new URLSearchParams({
             boardId: res.body._id,
             passwordToDelete: res.body.delete_password,
@@ -147,13 +145,12 @@ suite("Functional Tests", function () {
           }
         });
     });
-
     test("6. Create replies to threads: POST request to /api/replies/{board}", (done) => {
       chai
         .request(server)
         .post("/api/replies/{board}")
         .send({
-          thread_Id: "6354fbdcfe47a70e29ddac32",
+          thread_id: "635d1cabe4de8ae158565e64",
           text: "Thats good! xyz",
           delete_password: "1239",
         })
@@ -164,13 +161,14 @@ suite("Functional Tests", function () {
           done();
         });
     });
-
     test("7. Viewing a single thread with all replies: GET request to /api/replies/{board}", (done) => {
       let idToQuery = new URLSearchParams({
-        boardId: "6354dbb59ae6cca4aafe0f16",
+        board: "board",
+        thread_id: "6354dbb59ae6cca4aafe0f16",
       });
       chai
         .request(server)
+        // .get("/api/replies/" + idToQuery)
         .get("/api/replies/" + idToQuery)
         // .send({ boradId: "634e3f575871976c459cdf4e" })
         .end((err, res) => {
@@ -201,15 +199,14 @@ suite("Functional Tests", function () {
         .request(server)
         .post("/api/replies/{board}")
         .send({
-          thread_Id: "6354fbdcfe47a70e29ddac32",
+          thread_Id: "6354dbbed33b2032aa2dcc76",
           text: "fordeletion fordeletion fordeletion",
           delete_password: "fordeletion",
         })
         .end(function (err, res) {
-          // console.log("Test 6 response: ", res.body);
+          console.log("Test 6 response: ", res.body);
           assert.equal(res.status, "200");
           // done();
-
           const filterReplies = (reply) => {
             /** filter replies based on text and delete_password */
             if (
@@ -220,13 +217,13 @@ suite("Functional Tests", function () {
               return reply;
             }
           };
-
           let idToQuery = new URLSearchParams({
             thread_id: res.body._id,
             replyId: res.body.replies.filter(filterReplies)[0]._id,
             delete_password:
               res.body.replies.filter(filterReplies)[0].delete_password,
           });
+          console.log("idToQuery", idToQuery);
           chai
             .request(server)
             .delete("/api/replies/" + idToQuery)
@@ -238,14 +235,13 @@ suite("Functional Tests", function () {
             });
         });
     });
-
     test("10. Reporting a reply: PUT request to /api/replies/{board}", (done) => {
       chai
         .request(server)
         .put("/api/replies/{board}")
         .send({
-          thread_id: "6354db8e9ae6cca4aafe0edc",
-          reply_id: "63554e024115a822253ace94",
+          thread_id: "635d1cabe4de8ae158565e64",
+          reply_id: "635e0ff5493a8e18ad9ca943",
         })
         .end((err, res) => {
           {
