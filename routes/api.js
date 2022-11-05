@@ -3,8 +3,7 @@
 const { default: mongoose } = require("mongoose");
 const url = require("url");
 const querystring = require("querystring");
-// const URLSearchParams = require("URLSearchParams");
-
+const dayjs = require("dayjs");
 const messageBoard = new mongoose.Schema({
   board: String,
   text: String,
@@ -244,90 +243,29 @@ module.exports = function (app) {
       const { thread_id, text, delete_password } = req.body;
       // console.log(thread_Id, text, delete_password);
 
-      /**find board and create new reply */
+      let date = dayjs().format("YYYY-MM-DD");
+      let TodaysDate = req.body.TodaysDate || date;
+      // console.log("TodaysDate2:", TodaysDate);
+
+      /** find board and create new reply */
       let newReply = {
         text: text,
-        created_on: new Date(),
+        created_on: TodaysDate,
         delete_password: delete_password,
         reported: false,
       };
 
-      // async function updateBoardWithReply(newReply, thread_id) {
-      //   let boardToUpdate = await MessageBoard.findOne({ _id: thread_id });
-      //   await boardToUpdate.replies.push(newReply).save();
-      //   boardToUpdate
-      //     .then((board) => {
-      //       console.log("board:", board);
-      //       res.send({
-      //         _id: board._id,
-      //         board: board.board,
-      //         text: board.text,
-      //         created_on: board.created_on,
-      //         bumped_on: board.bumped_on,
-      //         reported: board.reported,
-      //         delete_password: board.delete_password,
-      //         replies: board.replies,
-      //       });
-      //       // }
-      //     })
-      //     .catch((err) => {
-      //       console.log("error:", err);
-      //       res.send("error");
-      //     });
-      // }
-
-      // updateBoardWithReply(newReply, thread_id);
-
-      // MessageBoard.findOneAndUpdate(
-      //   { _id: thread_id },
-      //   {
-      //     $addToSet: {
-      //       replies: {
-      //         text: text,
-      //         created_on: date,
-      //         delete_password: delete_password,
-      //         reported: false,
-      //       },
-      //     },
-      //   },
-      //   // { upsert: true },
-      //   (err, board) => {
-      //     if (board) {
-      //       // console.log("data:", data);
-      //       res.send({
-      //         _id: board._id,
-      //         board: board.board,
-      //         text: board.text,
-      //         created_on: board.created_on,
-      //         bumped_on: board.bumped_on,
-      //         reported: board.reported,
-      //         delete_password: board.delete_password,
-      //         replies: board.replies,
-      //       });
-      //     } else {
-      //       console.log("error:", err);
-      //     }
-      //   }
-      // );
-
       MessageBoard.findOneAndUpdate(
         { _id: thread_id },
-        [
-          {
-            $set: { bumped_on: new Date() },
-            // $push: { replies: newReply },
-            $addToSet: { replies: newReply },
-          },
-        ],
-        // { returnOriginal: false },
-        // { upsert: true, new: true },
-        // { new: true },
+        {
+          $set: { bumped_on: newReply.created_on },
+          $addToSet: { replies: newReply },
+        },
         (err, board) => {
           if (err) {
             console.log("error:", err);
             res.send("error");
           } else {
-            console.log("board:", board);
             res.send({
               _id: board._id,
               board: board.board,
@@ -418,7 +356,7 @@ module.exports = function (app) {
             text: board.text,
             created_on: board.created_on,
             bumped_on: board.bumped_on,
-            replies: newReplies.slice(0, 2),
+            replies: newReplies.slice(0, 3),
           };
           // console.log("newBoard", newBoard);
           res.send(newBoard);

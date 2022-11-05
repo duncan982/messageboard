@@ -2,11 +2,23 @@ const chaiHttp = require("chai-http");
 const chai = require("chai");
 const assert = chai.assert;
 const server = require("../server");
+const dayjs = require("dayjs");
 
 chai.use(chaiHttp);
 
 suite("Functional Tests", function () {
   suite("Integration tests with chai-http", function () {
+    const filterReplies = (reply) => {
+      /** filter replies based on text and delete_password */
+      if (
+        reply.text === "fordeletion fordeletion fordeletion" &&
+        reply.delete_password === "fordeletion"
+      ) {
+        // console.log("reply", reply);
+        return reply;
+      }
+    };
+
     // // a list to collect boardIDs and texts
     // let boardIDsAndTexts = [];
     // // function to collect boardIDs and texts
@@ -146,18 +158,30 @@ suite("Functional Tests", function () {
         });
     });
     test("6. Create replies to threads: POST request to /api/replies/{board}", (done) => {
+      let date = dayjs().format("YYYY-MM-DD");
+      // console.log("TodaysDate1:", date);
       chai
         .request(server)
         .post("/api/replies/{board}")
         .send({
-          thread_id: "635d1cabe4de8ae158565e64",
-          text: "Thats good! xyz",
-          delete_password: "1239",
+          thread_id: "635507705dbbd73d7dee54a5",
+          text: "fordeletion fordeletion fordeletion",
+          delete_password: "fordeletion",
+          TodaysDate: date,
         })
         .end(function (err, res) {
-          // console.log("Test 6 response: ", res.body);
+          let replyText = res.body.replies.filter(filterReplies)[0].text;
+          let replyDeletePassword =
+            res.body.replies.filter(filterReplies)[0].delete_password;
+          // console.log("Test 6 response: ", res.body.bumped_on);
+          let bumpedOnDateFormated = dayjs(res.body.bumped_on).format(
+            "YYYY-MM-DD"
+          );
+          // console.log("bumpedOnDateFormated", bumpedOnDateFormated);
           assert.equal(res.status, "200");
-          // assert.property(res.body, " replyToBoardText");
+          assert.equal(bumpedOnDateFormated, date);
+          assert.equal(replyText, "fordeletion fordeletion fordeletion");
+          assert.equal(replyDeletePassword, "fordeletion");
           done();
         });
     });
@@ -195,28 +219,20 @@ suite("Functional Tests", function () {
         });
     });
     test("9. Deleting a reply with the correct password: DELETE request to /api/replies/{board} with a valid delete_password", (done) => {
+      let date = dayjs().format("YYYY-MM-DD");
       chai
         .request(server)
         .post("/api/replies/{board}")
         .send({
-          thread_Id: "6354dbbed33b2032aa2dcc76",
+          thread_id: "635507705dbbd73d7dee54a5",
           text: "fordeletion fordeletion fordeletion",
           delete_password: "fordeletion",
+          TodaysDate: date,
         })
         .end(function (err, res) {
-          console.log("Test 6 response: ", res.body);
+          // console.log("Test 9A response: ", res.body);
           assert.equal(res.status, "200");
-          // done();
-          const filterReplies = (reply) => {
-            /** filter replies based on text and delete_password */
-            if (
-              reply.text === "fordeletion fordeletion fordeletion" &&
-              reply.delete_password === "fordeletion"
-            ) {
-              // console.log("reply", reply);
-              return reply;
-            }
-          };
+
           let idToQuery = new URLSearchParams({
             thread_id: res.body._id,
             replyId: res.body.replies.filter(filterReplies)[0]._id,
@@ -228,7 +244,7 @@ suite("Functional Tests", function () {
             .request(server)
             .delete("/api/replies/" + idToQuery)
             .end((err, res) => {
-              console.log("Test 9 response: ", res.text);
+              console.log("Test 9B response: ", res.text);
               // assert.equal(res.status, 200);
               assert.equal(res.text, "success");
               done();

@@ -57,14 +57,8 @@ Deleting a thread with the incorrect password
         
 Creating a new reply
 ********************
-// it works partially but now it is not
-// it is not creating a new reply
-    // Creating a new reply
-        // call mongoose models
-        // create new models
-        // save it
-    // it is not returning a created reply
-        // return the above model
+// dates don't match 100% to seconds and milliseconds
+// 
 
 
 /** Viewing a single thread with all replies */
