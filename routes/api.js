@@ -66,11 +66,10 @@ module.exports = function (app) {
           replies: [],
         });
         newMessageBoard.save((err, newBoard) => {
-          if (err) {
-            return console.error(err);
-          } else {
+          if (newBoard) {
             return res.json(newBoard);
-            // return res.redirect("/b/" + newBoard.board + "/");
+          } else {
+            return res.send(err);
           }
         });
       }
@@ -119,33 +118,44 @@ module.exports = function (app) {
        * atleast 3 or more replies then select the top 10 and return them */
       let availableMessages = MessageBoard.find({});
       availableMessages.sort(filter).then((boards) => {
-        let selectedBoards = boards
-          .filter((board) => {
-            // console.log("board before", board);
-            return board.replies.length >= 3;
-          })
-          .slice(0, 10)
-          .map((board) => {
-            // console.log(board);
-            let newReplies = board.replies.map((reply) => {
-              return {
-                text: reply.text,
-                created_on: reply.created_on,
+        if (boards) {
+          let selectedBoards = boards
+            .filter((board) => {
+              // console.log("board before", board);
+              return board.replies.length >= 3;
+            })
+            .slice(0, 10)
+            .map((board) => {
+              // console.log(board);
+              let newReplies = board.replies.map((reply) => {
+                return {
+                  text: reply.text,
+                  created_on: reply.created_on,
+                };
+              });
+              // console.log("newReplies", newReplies);
+              let newBoard = {
+                board: board.board,
+                text: board.text,
+                created_on: board.created_on,
+                bumped_on: board.bumped_on,
+                replies: newReplies
+                  .sort((a, b) => {
+                    return new Date(b.created_on) - new Date(a.created_on);
+                  })
+                  .slice(0, 3),
               };
+              return newBoard;
             });
-            // console.log("newReplies", newReplies);
-            let newBoard = {
-              board: board.board,
-              text: board.text,
-              created_on: board.created_on,
-              bumped_on: board.bumped_on,
-              replies: newReplies.slice(0, 3),
-            };
-            return newBoard;
-          });
-        // console.log("selectedBoards", selectedBoards);
-        console.log("created_on selectedBoards.length:", selectedBoards.length);
-        res.json(selectedBoards);
+          // console.log("selectedBoards", selectedBoards[0].replies);
+          console.log(
+            "created_on selectedBoards.length:",
+            selectedBoards.length
+          );
+          res.json(selectedBoards);
+        } else {
+          res.json({ erorr: "error" });
+        }
       });
     })
     .delete(function (req, res) {
@@ -262,10 +272,7 @@ module.exports = function (app) {
           $addToSet: { replies: newReply },
         },
         (err, board) => {
-          if (err) {
-            console.log("error:", err);
-            res.send("error");
-          } else {
+          if (board) {
             res.send({
               _id: board._id,
               board: board.board,
@@ -276,6 +283,9 @@ module.exports = function (app) {
               delete_password: board.delete_password,
               replies: board.replies,
             });
+          } else {
+            console.log("error:", err);
+            res.send("error");
           }
         }
       );
@@ -418,10 +428,8 @@ module.exports = function (app) {
         (err, data) => {
           // console.log("data", data);
           if (data) {
-            // res.json("incorrect password");
             res.send("success");
           } else {
-            // console.log("error:", err);
             res.send("incorrect password");
           }
         }

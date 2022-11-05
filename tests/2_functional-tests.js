@@ -66,9 +66,11 @@ suite("Functional Tests", function () {
         .end(function (req, res) {
           // console.log("Test 1 response:", res.body);
           // assert.equal(res.status, "200");
-          // assert.property(res.body, "board");
+          assert.property(res.body, "board");
           assert.property(res.body, "text");
           assert.property(res.body, "delete_password");
+          assert.equal(res.body.text, "Test Test 9");
+          assert.equal(res.body.delete_password, "1239");
           done();
         });
     });
@@ -93,8 +95,10 @@ suite("Functional Tests", function () {
         .get("/api/threads/" + recentThreadsQuery)
         .end(function (err, res) {
           // console.log("Test 2 response:", res.body);
-          // assert.equal(res.status, 200);
+          assert.equal(res.status, 200);
           assert.isArray(res.body);
+          assert.equal(res.body.length, 10);
+          assert.equal(res.body[0].replies.length, 3);
           done();
         });
     });
@@ -105,10 +109,9 @@ suite("Functional Tests", function () {
       });
       chai
         .request(server)
-        // .delete("/api/threads/{board}" + queryParameters)
         .delete("/api/threads/" + queryParameters)
         .end((err, res) => {
-          console.log("test 3 response", res.text);
+          // console.log("test 3 response", res.text);
           assert.equal(res.status, 200);
           assert.equal(res.text, "incorrect password");
           done();
@@ -125,8 +128,6 @@ suite("Functional Tests", function () {
         })
         .end(function (req, res) {
           // console.log("Test 4 response:", res.body);
-          // console.log("res.body._id", res.body._id);
-          // console.log("res.body.delete_password", res.body.delete_password);
           assert.equal(res.status, "200");
           let queryParameters = new URLSearchParams({
             boardId: res.body._id,
@@ -136,7 +137,7 @@ suite("Functional Tests", function () {
             .request(server)
             .delete("/api/threads/" + queryParameters)
             .end((err, res) => {
-              console.log("test 4 response", res.text);
+              // console.log("test 4 response", res.text);
               assert.equal(res.status, 200);
               assert.equal(res.text, "success");
               done();
@@ -150,8 +151,8 @@ suite("Functional Tests", function () {
         .send({ thread_id: "6354db709ae6cca4aafe0ec8" })
         .end((err, res) => {
           {
-            console.log("test 5 response", res.text);
-            // assert.equal(res.status, 200);
+            // console.log("test 5 response", res.text);
+            assert.equal(res.status, 200);
             assert.equal(res.text, "reported");
             done();
           }
@@ -192,13 +193,12 @@ suite("Functional Tests", function () {
       });
       chai
         .request(server)
-        // .get("/api/replies/" + idToQuery)
         .get("/api/replies/" + idToQuery)
-        // .send({ boradId: "634e3f575871976c459cdf4e" })
         .end((err, res) => {
           // console.log("Test 7 response: ", res.body);
           assert.equal(res.status, 200);
           assert.isObject(res.body);
+          assert.isArray(res.body.replies);
           done();
         });
     });
@@ -212,8 +212,8 @@ suite("Functional Tests", function () {
         .request(server)
         .delete("/api/replies/" + idToQuery)
         .end((err, res) => {
-          console.log("Test 8 response: ", res.text);
-          // assert.equal(res.status, 200);
+          // console.log("Test 8 response: ", res.text);
+          assert.equal(res.status, 200);
           assert.equal(res.text, "incorrect password");
           done();
         });
@@ -244,8 +244,8 @@ suite("Functional Tests", function () {
             .request(server)
             .delete("/api/replies/" + idToQuery)
             .end((err, res) => {
-              console.log("Test 9B response: ", res.text);
-              // assert.equal(res.status, 200);
+              // console.log("Test 9B response: ", res.text);
+              assert.equal(res.status, 200);
               assert.equal(res.text, "success");
               done();
             });
@@ -261,8 +261,8 @@ suite("Functional Tests", function () {
         })
         .end((err, res) => {
           {
-            console.log("Test 10 response: ", res.text);
-            // assert.equal(res.status, 200);
+            // console.log("Test 10 response: ", res.text);
+            assert.equal(res.status, 200);
             assert.equal(res.text, "reported");
             done();
           }

@@ -57,14 +57,14 @@ Deleting a thread with the incorrect password
         
 Creating a new reply
 ********************
-// dates don't match 100% to seconds and milliseconds
-// 
+// dates don't match 100% to seconds and milliseconds (done)
 
 
-/** Viewing a single thread with all replies */
+/** Viewing a single thread with all replies */ (done)
     // not returning response
     // inner workings?
         // partially
+
 
 
 /** node mongoose  post delete request returning collection but not creating collection */
