@@ -8,6 +8,9 @@ const apiRoutes = require("./routes/api.js");
 const fccTestingRoutes = require("./routes/fcctesting.js");
 const runner = require("./test-runner");
 const mongoose = require("mongoose");
+// const { options } = require("nodemon/lib/config");
+const helmet = require("helmet");
+// const { frameguard } = require("helmet");
 mongoose.Promise = global.Promise;
 
 const app = express();
@@ -19,25 +22,41 @@ app.use(cors({ origin: "*" })); //For FCC testing purposes only
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(function (req, res, next) {
-  res.setHeader(
-    "Content-Security-Policy",
-    "default-src 'self' https://wuwcrv-3000.preview.csb.app/; script-src 'self' https://wuwcrv-3000.preview.csb.app/; style 'self' https://wuwcrv-3000.preview.csb.app/; connect-src 'self' https://wuwcrv-3000.preview.csb.app/"
-  );
-  next();
-});
+/** prevent various malicius attacks*/
+app.use(
+  helmet({
+    referrerPolicy: { policy: "same-origin" },
+  })
+);
+
+/** customise default helmet contentSecurityPolicy settings*/
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: false,
+    directives: {
+      defaultSrc: ["https://wuwcrv-3000.preview.csb.app/"],
+      scriptSrc: ["'self'", "https://wuwcrv-3000.preview.csb.app/"],
+      styleSrc: ["'self'", "https://wuwcrv-3000.preview.csb.app/"],
+      connectSrc: ["'self'", "https://wuwcrv-3000.preview.csb.app/"],
+    },
+  })
+);
 
 mongoose
   .connect(process.env.CONNECTIONSTRING, {
     useNewURLParser: true,
     useUnifiedTopology: true,
   })
-  .then(console.log("MongoDB is now connected."));
+  .then(console.log("MongoDB is now connected."))
+  .catch((error) => {
+    console.log("MongoDB is not connected.");
+    console.log("error", error);
+  });
 
-mongoose.connection.on("connected", () => console.log("mongoDb connected!"));
-mongoose.connection.on("disconnected", () =>
-  console.log("mongoDb disconnected!")
-);
+// mongoose.connection.on("connected", () => console.log("mongoDb connected!"));
+// mongoose.connection.on("disconnected", () =>
+//   console.log("mongoDb disconnected!")
+// );
 //Sample front-end
 app.route("/b/:board/").get(function (req, res) {
   res.sendFile(process.cwd() + "/views/board.html");
