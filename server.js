@@ -3,15 +3,14 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const helmet = require("helmet");
 
 const apiRoutes = require("./routes/api.js");
 const fccTestingRoutes = require("./routes/fcctesting.js");
 const runner = require("./test-runner");
 const mongoose = require("mongoose");
-// const { options } = require("nodemon/lib/config");
-const helmet = require("helmet");
-// const { frameguard } = require("helmet");
-mongoose.Promise = global.Promise;
+
+// mongoose.Promise = global.Promise;
 
 const app = express();
 
