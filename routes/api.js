@@ -79,31 +79,35 @@ module.exports = function (app) {
 
       /** find all threads, sort based on time/date and select those with
        * atleast 3 or more replies then select the top 10 and return them */
-      let availableMessages = MessageBoard.find({});
-      availableMessages.sort(filter).then((boards) => {
-        let selectedBoards = boards
-          .filter((board) => {
-            return board.replies.length >= 3;
-          })
-          .slice(0, 10)
-          .map((board) => {
-            let newReplies = board.replies.map((reply) => {
-              return {
-                text: reply.text,
-                created_on: reply.created_on,
-              };
-            });
-            let newBoard = {
-              board: board.board,
-              text: board.text,
-              created_on: board.created_on,
-              bumped_on: board.bumped_on,
-              replies: newReplies.slice(0, 3),
-            };
-            return newBoard;
-          });
-        res.json(selectedBoards);
-      });
+      MessageBoard.find(
+        {},
+        {
+          reported: 0,
+          delete_password: 0,
+          "replies.delete_password": 0,
+          "replies.reported": 0,
+        }
+      )
+        .sort(filter)
+        .then((boards) => {
+          // console.log("boards", boards);
+          let selectedBoards = boards
+            .filter((board) => {
+              if (board.replies.length >= 3) {
+                // console.log("board.replies.length", board.replies.length);
+                board.replies = board.replies.slice(-3);
+                return board;
+              }
+            })
+            .slice(0, 10);
+          // console.log("selectedBoards.length:", selectedBoards.length);
+          // console.log("selectedBoards", selectedBoards);
+          res.json(selectedBoards);
+        })
+        .catch((err) => {
+          console.log("error:", err);
+          res.json({ error: err });
+        });
     })
     .delete(function (req, res) {
       /** Deleting a thread with the incorrect/correct password: DELETE request to

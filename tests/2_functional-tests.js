@@ -65,7 +65,7 @@ suite("Functional Tests", function () {
         })
         .end(function (req, res) {
           // console.log("Test 1 response:", res.body);
-          // assert.equal(res.status, "200");
+          assert.equal(res.status, "200");
           // assert.property(res.body, "board");
           assert.property(res.body, "text");
           assert.property(res.body, "delete_password");
@@ -93,8 +93,18 @@ suite("Functional Tests", function () {
         .get("/api/threads/" + recentThreadsQuery)
         .end(function (err, res) {
           // console.log("Test 2 response:", res.body);
-          // assert.equal(res.status, 200);
+          // console.log("Test 2 response:", res.body[0]);
+          assert.equal(res.status, 200);
           assert.isArray(res.body);
+          assert.equal(res.body.length, 10);
+          assert.property(res.body[0], "board");
+          assert.property(res.body[0], "text");
+          assert.property(res.body[0], "created_on");
+          assert.property(res.body[0], "bumped_on");
+          assert.equal(res.body[0].replies.length, 3);
+          assert.property(res.body[0].replies[0], "text");
+          assert.property(res.body[0].replies[0], "created_on");
+          assert.property(res.body[0].replies[0], "_id");
           done();
         });
     });
