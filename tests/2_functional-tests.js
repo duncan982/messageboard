@@ -202,9 +202,7 @@ suite("Functional Tests", function () {
       });
       chai
         .request(server)
-        // .get("/api/replies/" + idToQuery)
         .get("/api/replies/" + idToQuery)
-        // .send({ boradId: "634e3f575871976c459cdf4e" })
         .end((err, res) => {
           // console.log("Test 7 response: ", res.body);
           assert.equal(res.status, 200);

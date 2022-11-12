@@ -40,7 +40,7 @@ module.exports = function (app) {
         delete_password = req.body.delete_password;
       }
 
-      async function createBoard(board = "board", text, delete_password) {
+      async function createBoard(board, text, delete_password) {
         let date = new Date();
         let newMessageBoard = await MessageBoard.create({
           board: board,
@@ -55,6 +55,7 @@ module.exports = function (app) {
           if (err) {
             return res.send(err);
           } else {
+            // return res.redirect("/b/" + board + "/");
             return res.json(newBoard);
           }
         });
@@ -222,28 +223,41 @@ module.exports = function (app) {
           thread_id: requestParameters.get("thread_id"),
         };
       }
-
-      // iterate list of replies and find matching based on id
-      MessageBoard.findOne(filter)
+      MessageBoard.findOne(filter, {
+        reported: 0,
+        delete_password: 0,
+        "replies.delete_password": 0,
+        "replies.reported": 0,
+      })
         .then((board) => {
-          let newReplies = board.replies.map((reply) => {
-            return {
-              text: reply.text,
-              created_on: reply.created_on,
-            };
-          });
-          let newBoard = {
-            board: board.board,
-            text: board.text,
-            created_on: board.created_on,
-            bumped_on: board.bumped_on,
-            replies: newReplies.slice(0, 3),
-          };
-          res.send(newBoard);
+          res.json(board);
         })
-        .catch((error) => {
-          res.json({ error: error });
+        .catch((err) => {
+          console.log("error:", err);
+          res.json({ error: err });
         });
+
+      // // iterate list of replies and find matching based on id
+      // MessageBoard.findOne(filter)
+      //   .then((board) => {
+      //     let newReplies = board.replies.map((reply) => {
+      //       return {
+      //         text: reply.text,
+      //         created_on: reply.created_on,
+      //       };
+      //     });
+      //     let newBoard = {
+      //       board: board.board,
+      //       text: board.text,
+      //       created_on: board.created_on,
+      //       bumped_on: board.bumped_on,
+      //       replies: newReplies.slice(0, 3),
+      //     };
+      //     res.send(newBoard);
+      //   })
+      //   .catch((error) => {
+      //     res.json({ error: error });
+      //   });
     })
     .delete(function (req, res) {
       /** Deleting a thread with the incorrect/correct password: DELETE request to
