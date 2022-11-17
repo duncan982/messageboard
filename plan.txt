@@ -82,9 +82,21 @@ Creating a new reply
     // Second last option: check others implementation
     // Last option: post on forum for help 
 
-render the returned threads
-********************************
+TODO: merge branch(es) with main
 
-merge branch(es) with main
-********************************
-
+/**code not passing*/
+    // post a new thread   
+    // post a new reply 
+    // delete a reply with correct password
+        // even after adapting fcc solution
+        // even tried to copy the whole project solution code but it didnt work
+            // html is also the same
+            
+    //option 1:
+        // post on stackoverflow
+    //option 2:
+        // post on fcc forum
+    //option 3:
+        // continue with another project as you wait for the above
+    //option 4:
+        // continue with the attempt as you wait for the support
