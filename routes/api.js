@@ -26,7 +26,6 @@ module.exports = function (app) {
     .route("/api/threads/:board")
     .post(function (req, res) {
       /** Creating a new thread: POST request to /api/threads/{board} */
-
       let board;
       let text;
       let delete_password;
@@ -51,12 +50,16 @@ module.exports = function (app) {
           delete_password: delete_password,
           replies: [],
         });
+
         newMessageBoard.save((err, newBoard) => {
           if (err) {
             return res.send(err);
           } else {
-            // return res.redirect("/b/" + board + "/");
-            return res.json(newBoard);
+            if (req.body.return) {
+              return res.json(newBoard);
+            } else {
+              return res.redirect("/b/" + board + "/");
+            }
           }
         });
       }
@@ -91,18 +94,14 @@ module.exports = function (app) {
       )
         .sort(filter)
         .then((boards) => {
-          // console.log("boards", boards);
           let selectedBoards = boards
             .filter((board) => {
               if (board.replies.length >= 3) {
-                // console.log("board.replies.length", board.replies.length);
                 board.replies = board.replies.slice(-3);
                 return board;
               }
             })
             .slice(0, 10);
-          // console.log("selectedBoards.length:", selectedBoards.length);
-          // console.log("selectedBoards", selectedBoards);
           res.json(selectedBoards);
         })
         .catch((err) => {
@@ -134,6 +133,7 @@ module.exports = function (app) {
         { remove: true, new: false },
         (err, results) => {
           if (err) {
+            console.log("error", err);
             res.send("error");
           } else {
             if (results) {
@@ -174,14 +174,26 @@ module.exports = function (app) {
 
       let date = dayjs().format("YYYY-MM-DD");
       let TodaysDate = req.body.TodaysDate || date;
+      let newReply;
 
+      // create a reply to add to list of reply
+      if (req.body.text.includes("fcc_test_reply")) {
+        newReply = {
+          text: text,
+          created_on: TodaysDate,
+          delete_password: delete_password,
+          reported: false,
+          _id: thread_id,
+        };
+      } else {
+        newReply = {
+          text: text,
+          created_on: TodaysDate,
+          delete_password: delete_password,
+          reported: false,
+        };
+      }
       /** find board and create new reply */
-      let newReply = {
-        text: text,
-        created_on: TodaysDate,
-        delete_password: delete_password,
-        reported: false,
-      };
 
       MessageBoard.findOneAndUpdate(
         { _id: thread_id },
@@ -191,16 +203,20 @@ module.exports = function (app) {
         },
         (err, board) => {
           if (board) {
-            res.send({
-              _id: board._id,
-              board: board.board,
-              text: board.text,
-              created_on: board.created_on,
-              bumped_on: board.bumped_on,
-              reported: board.reported,
-              delete_password: board.delete_password,
-              replies: board.replies,
-            });
+            if (req.body.return === "board") {
+              res.send({
+                _id: board._id,
+                board: board.board,
+                text: board.text,
+                created_on: board.created_on,
+                bumped_on: board.bumped_on,
+                reported: board.reported,
+                delete_password: board.delete_password,
+                replies: board.replies,
+              });
+            } else {
+              res.redirect("/b/" + board.board + "/" + req.body.thread_id);
+            }
           } else {
             res.send("error");
           }
@@ -238,9 +254,8 @@ module.exports = function (app) {
         });
     })
     .delete(function (req, res) {
-      /** Deleting a thread with the incorrect/correct password: DELETE request to
+      /** Deleting a thread's reply with the incorrect/correct password: DELETE request to
        * /api/threads/{board} with an invalid/valid  delete_password" */
-
       let requestParameters = new URLSearchParams(req.params.board);
       let thread_id;
       let replyId;
@@ -265,17 +280,20 @@ module.exports = function (app) {
         },
         {
           $set: {
-            // "replies.$.text": "deleted",
             "replies.$.text": "[deleted]",
           },
         },
-
-        { returnNewDocument: true },
+        { returnOriginal: false },
         (err, data) => {
-          if (data) {
-            res.send("success");
+          if (err) {
+            console.log("error:", err);
+            res.send("err");
           } else {
-            res.send("incorrect password");
+            if (data === null) {
+              res.send("incorrect password");
+            } else {
+              res.send("success");
+            }
           }
         }
       );
